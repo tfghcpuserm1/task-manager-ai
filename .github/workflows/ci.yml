@@ -24,3 +24,6 @@ jobs:
 
       - name: Verify Node setup
         run: node -v
+
+      - name: Break the pipeline intentionally
+        run: exit 1
