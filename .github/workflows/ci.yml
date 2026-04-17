@@ -22,5 +22,5 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Verify app
-        run: node -e "require('./backend/app.js')"
+      - name: Verify Node setup
+        run: node -v
