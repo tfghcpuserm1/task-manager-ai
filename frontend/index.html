@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Task Manager</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.1);
+      padding: 2rem;
+      width: 100%;
+      max-width: 560px;
+      height: fit-content;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: #1a1a2e;
+    }
+
+    .input-row {
+      display: flex;
+      gap: .5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    #taskInput {
+      flex: 1;
+      padding: .6rem .8rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    #taskInput:focus { border-color: #6366f1; }
+
+    button {
+      padding: .6rem 1.1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: .95rem;
+      font-weight: 600;
+    }
+
+    #addBtn {
+      background: #6366f1;
+      color: #fff;
+      transition: background .2s;
+    }
+
+    #addBtn:hover { background: #4f46e5; }
+
+    #taskList {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: .6rem;
+    }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .7rem .9rem;
+      border-radius: 8px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      transition: opacity .2s;
+    }
+
+    .task-item.done { opacity: .5; }
+    .task-item.done .task-text { text-decoration: line-through; color: #6b7280; }
+
+    .task-item input[type="checkbox"] {
+      width: 1.1rem;
+      height: 1.1rem;
+      cursor: pointer;
+      accent-color: #6366f1;
+    }
+
+    .task-text {
+      flex: 1;
+      font-size: .97rem;
+      color: #111827;
+      word-break: break-word;
+    }
+
+    .delete-btn {
+      background: transparent;
+      color: #ef4444;
+      font-size: 1.1rem;
+      padding: 0 .3rem;
+      line-height: 1;
+    }
+
+    .delete-btn:hover { color: #b91c1c; }
+
+    .empty-msg {
+      text-align: center;
+      color: #9ca3af;
+      font-size: .9rem;
+      padding: 1rem 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Task Manager</h1>
+
+    <div class="input-row">
+      <input
+        id="taskInput"
+        type="text"
+        placeholder="Add a new task…"
+        maxlength="200"
+        aria-label="New task"
+      />
+      <button id="addBtn" aria-label="Add task">Add</button>
+    </div>
+
+    <ul id="taskList" aria-label="Task list"></ul>
+    <p id="emptyMsg" class="empty-msg">No tasks yet. Add one above!</p>
+  </div>
+
+  <script>
+    const input = document.getElementById('taskInput');
+    const addBtn = document.getElementById('addBtn');
+    const taskList = document.getElementById('taskList');
+    const emptyMsg = document.getElementById('emptyMsg');
+
+    let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+
+    function saveTasks() {
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+
+    function renderTasks() {
+      taskList.innerHTML = '';
+      emptyMsg.style.display = tasks.length ? 'none' : 'block';
+
+      tasks.forEach((task, index) => {
+        const li = document.createElement('li');
+        li.className = 'task-item' + (task.done ? ' done' : '');
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = task.done;
+        checkbox.setAttribute('aria-label', 'Mark task complete');
+        checkbox.addEventListener('change', () => {
+          tasks[index].done = checkbox.checked;
+          saveTasks();
+          renderTasks();
+        });
+
+        const span = document.createElement('span');
+        span.className = 'task-text';
+        span.textContent = task.text;
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.textContent = '✕';
+        deleteBtn.setAttribute('aria-label', 'Delete task');
+        deleteBtn.addEventListener('click', () => {
+          tasks.splice(index, 1);
+          saveTasks();
+          renderTasks();
+        });
+
+        li.appendChild(checkbox);
+        li.appendChild(span);
+        li.appendChild(deleteBtn);
+        taskList.appendChild(li);
+      });
+    }
+
+    function addTask() {
+      const text = input.value.trim();
+      if (!text) return;
+      tasks.push({ text, done: false });
+      saveTasks();
+      renderTasks();
+      input.value = '';
+      input.focus();
+    }
+
+    addBtn.addEventListener('click', addTask);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') addTask();
+    });
+
+    renderTasks();
+  </script>
+</body>
+</html>
